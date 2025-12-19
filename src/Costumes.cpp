@@ -20,12 +20,6 @@
 #include "Config.h"
 #include "SpellAuraEffects.h"
 #include "Time/GameTime.h"
-#if __has_include("Playerbots.h")
-#include "Playerbots.h"
-#define HAVE_PLAYERBOTS 1
-#else
-#define HAVE_PLAYERBOTS 0
-#endif
 
 #include <boost/range/join.hpp>
 
@@ -148,15 +142,6 @@ bool Costumes::OnPlayerCanUseItem(Player *player, ItemTemplate const *item, Inve
     {
         return true;
     }
-
-#if HAVE_PLAYERBOTS
-    // Disable costume use for bots entirely
-    if (GET_PLAYERBOT_AI(player))
-    {
-        result = InventoryResult::EQUIP_ERR_CANT_DO_RIGHT_NOW;
-        return false;
-    }
-#endif
 
     if (!canUseInBg && player->InBattleground())
     {
