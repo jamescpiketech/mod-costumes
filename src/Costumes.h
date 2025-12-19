@@ -21,6 +21,8 @@
 #include <map>
 
 #include "ScriptMgr.h"
+class SpellCastTargets;
+
 #include "Player.h"
 
 struct Costume;
@@ -33,7 +35,7 @@ public:
     Costumes();
 
     // PlayerScript
-    bool OnPlayerCanUseItem(Player *player, ItemTemplate const *item, InventoryResult &result) override;
+    bool OnPlayerCanCastItemUseSpell(Player* player, Item* item, SpellCastTargets const& targets, uint8 cast_count, uint32 glyphIndex) override;
     void OnPlayerEnterCombat(Player *player, Unit *enemy) override;
     void OnPlayerMapChanged(Player *player) override;
     void OnPlayerUpdate(Player *player, uint32 p_time) override;

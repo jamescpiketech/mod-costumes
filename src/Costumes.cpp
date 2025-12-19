@@ -111,7 +111,7 @@ struct PlayerState
 
 Costumes::Costumes()
     : PlayerScript("CostumesPlayerScript", {
-        PLAYERHOOK_CAN_USE_ITEM,
+        PLAYERHOOK_CAN_CAST_ITEM_USE_SPELL,
         PLAYERHOOK_ON_PLAYER_ENTER_COMBAT,
         PLAYERHOOK_ON_MAP_CHANGED,
         PLAYERHOOK_ON_UPDATE
@@ -136,38 +136,44 @@ Costumes::Costumes()
 {
 }
 
-bool Costumes::OnPlayerCanUseItem(Player *player, ItemTemplate const *item, InventoryResult &result)
+bool Costumes::OnPlayerCanCastItemUseSpell(Player* player, Item* item, SpellCastTargets const& /*targets*/, uint8 /*cast_count*/, uint32 /*glyphIndex*/)
 {
-    if (!enabled || !player || !item || (uint32)item->Spells[0].SpellId != (uint32)costumeSpellId)
+    if (!enabled || !player || !item)
+    {
+        return true;
+    }
+
+    ItemTemplate const* proto = item->GetTemplate();
+    if (!proto || (uint32)proto->Spells[0].SpellId != (uint32)costumeSpellId)
     {
         return true;
     }
 
     if (!canUseInBg && player->InBattleground())
     {
-        result = InventoryResult::EQUIP_ERR_CANT_DO_RIGHT_NOW;
+        player->SendEquipError(InventoryResult::EQUIP_ERR_CANT_DO_RIGHT_NOW, item, nullptr);
         return false;
     }
 
     if (!canUseInArena && player->InArena())
     {
-        result = InventoryResult::EQUIP_ERR_NOT_DURING_ARENA_MATCH;
+        player->SendEquipError(InventoryResult::EQUIP_ERR_NOT_DURING_ARENA_MATCH, item, nullptr);
         return false;
     }
 
     if (!canUseInCombat && player->IsInCombat())
     {
-        result = InventoryResult::EQUIP_ERR_NOT_IN_COMBAT;
+        player->SendEquipError(InventoryResult::EQUIP_ERR_NOT_IN_COMBAT, item, nullptr);
         return false;
     }
 
     if (!canUseInPvp && player->IsInCombat() && player->IsPvP())
     {
-        result = InventoryResult::EQUIP_ERR_NOT_IN_COMBAT;
+        player->SendEquipError(InventoryResult::EQUIP_ERR_NOT_IN_COMBAT, item, nullptr);
         return false;
     }
 
-    Costume* costume = costumes[item->ItemId];
+    Costume* costume = costumes[proto->ItemId];
     if (!costume)
     {
         return true;
@@ -203,7 +209,7 @@ bool Costumes::OnPlayerCanUseItem(Player *player, ItemTemplate const *item, Inve
         }
         ChatHandler(player->GetSession()).SendNotification("Cooldown: {}", formattedTime);
 
-        result = InventoryResult::EQUIP_ERR_CANT_DO_RIGHT_NOW;
+        player->SendEquipError(InventoryResult::EQUIP_ERR_CANT_DO_RIGHT_NOW, item, nullptr);
         return false;
     }
 
